@@ -1,6 +1,7 @@
 ---
 name: shipit
 description: Ship code
+disable-model-invocation: true
 ---
 
 1. Create a new branch

@@ -1,6 +1,7 @@
 ---
 name: fix
 description: Fix code
+disable-model-invocation: true
 ---
 
 1. Use the lens skill to identify issues.

@@ -1,6 +1,7 @@
 ---
 name: lens
 description: Review code
+disable-model-invocation: true
 ---
 
 Spawn one or more subagents to review the current branch and the associated PR. Identify:

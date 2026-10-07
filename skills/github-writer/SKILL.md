@@ -1,6 +1,7 @@
 ---
 name: github-writer
 description: Write data in GitHub
+disable-model-invocation: false
 ---
 
 * When pushing a commit:

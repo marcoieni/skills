@@ -1,3 +1,5 @@
 interface:
   display_name: "Write code"
   brand_color: "#3B82F6"
+policy:
+  allow_implicit_invocation: true

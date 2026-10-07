@@ -6,3 +6,7 @@ Assumptions:
 
 * You use GitHub for issue tracking.
 * Agents have access to a GitHub account. E.g. I use [marcoienibot](https://github.com/marcoienibot).
+
+## 📚 Docs
+
+* [OpenAI skills metadata](https://learn.chatgpt.com/docs/build-skills#optional-metadata)
