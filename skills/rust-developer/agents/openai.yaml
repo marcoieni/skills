@@ -1,6 +1,2 @@
-interface:
-  display_name: "Rust Developer"
-  short_description: "Write and review Rust code with async process guidance"
-  default_prompt: "Use $rust-developer to write and review the Rust changes for this task."
 policy:
   allow_implicit_invocation: true

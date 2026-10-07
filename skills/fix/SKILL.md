@@ -1,6 +1,6 @@
 ---
 name: fix
-description: Review the current branch and iteratively fix newly introduced issues, with one commit per finding and a GitHub summary.
+description: Fix code
 disable-model-invocation: true
 ---
 

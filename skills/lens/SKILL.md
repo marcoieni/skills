@@ -1,6 +1,6 @@
 ---
 name: lens
-description: Review the current branch and pull request for correctness, testing, security, and maintainability issues.
+description: Review code
 disable-model-invocation: true
 ---
 

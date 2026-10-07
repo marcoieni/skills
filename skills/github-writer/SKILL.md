@@ -1,6 +1,6 @@
 ---
 name: github-writer
-description: Apply GitHub publishing conventions when pushing commits or opening or updating pull requests, including draft PRs and CI follow-up.
+description: Write data in GitHub
 disable-model-invocation: false
 ---
 

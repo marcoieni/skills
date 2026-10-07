@@ -1,7 +1,5 @@
 interface:
   display_name: "Write code"
-  short_description: "Apply coding conventions and avoid tautological tests"
   brand_color: "#3B82F6"
-  default_prompt: "Use $write-code to apply the coding conventions while implementing this change."
 policy:
   allow_implicit_invocation: true

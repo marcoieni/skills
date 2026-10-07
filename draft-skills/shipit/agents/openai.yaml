@@ -1,7 +1,5 @@
 interface:
   display_name: "ShipIt"
-  short_description: "Implement, review, and ship an issue as a draft PR"
   brand_color: "#A69CD6"
-  default_prompt: "Use $shipit to implement this issue, review the changes, and open a draft pull request."
 policy:
   allow_implicit_invocation: false

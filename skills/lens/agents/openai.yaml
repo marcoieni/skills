@@ -1,7 +1,5 @@
 interface:
   display_name: "Lens"
-  short_description: "Review branch and PR changes for actionable issues"
   brand_color: "#569CD6"
-  default_prompt: "Use $lens to review the current branch and its pull request."
 policy:
   allow_implicit_invocation: false

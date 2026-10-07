@@ -1,6 +1,6 @@
 ---
 name: rust-developer
-description: Write and review Rust code, including subprocess handling in async applications.
+description: Write and review Rust code
 disable-model-invocation: false
 ---
 
