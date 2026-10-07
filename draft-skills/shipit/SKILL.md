@@ -1,6 +1,7 @@
 ---
 name: shipit
-description: Ship code
+description: Implement an issue on a new branch, iterate on adversarial reviews, and open a draft pull request with CI follow-up.
+disable-model-invocation: true
 ---
 
 1. Create a new branch

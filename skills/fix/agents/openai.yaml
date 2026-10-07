@@ -1,5 +1,7 @@
 interface:
   display_name: "Fix"
+  short_description: "Review and fix issues introduced by the current branch"
   brand_color: "#3B82F6"
+  default_prompt: "Use $fix to review this branch and fix newly introduced issues."
 policy:
   allow_implicit_invocation: false

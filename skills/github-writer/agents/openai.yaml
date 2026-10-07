@@ -1,3 +1,7 @@
 interface:
   display_name: "GitHub Writer"
+  short_description: "Apply GitHub conventions for commits, PRs, and CI"
   brand_color: "#3B82F6"
+  default_prompt: "Use $github-writer when pushing these changes and opening a draft pull request."
+policy:
+  allow_implicit_invocation: true

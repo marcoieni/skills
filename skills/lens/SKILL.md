@@ -1,6 +1,7 @@
 ---
 name: lens
-description: Review code
+description: Review the current branch and pull request for correctness, testing, security, and maintainability issues.
+disable-model-invocation: true
 ---
 
 Spawn one or more subagents to review the current branch and the associated PR. Identify:

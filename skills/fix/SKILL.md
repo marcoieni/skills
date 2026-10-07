@@ -1,6 +1,7 @@
 ---
 name: fix
-description: Fix code
+description: Review the current branch and iteratively fix newly introduced issues, with one commit per finding and a GitHub summary.
+disable-model-invocation: true
 ---
 
 1. Use the lens skill to identify issues.
