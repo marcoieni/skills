@@ -1,0 +1,5 @@
+interface:
+  display_name: "Fix"
+  brand_color: "#3B82F6"
+policy:
+  allow_implicit_invocation: false

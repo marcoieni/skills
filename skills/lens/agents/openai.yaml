@@ -1,0 +1,5 @@
+interface:
+  display_name: "Lens"
+  brand_color: "#569CD6"
+policy:
+  allow_implicit_invocation: false

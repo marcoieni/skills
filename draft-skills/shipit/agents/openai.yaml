@@ -1,0 +1,5 @@
+interface:
+  display_name: "ShipIt"
+  brand_color: "#A69CD6"
+policy:
+  allow_implicit_invocation: false
