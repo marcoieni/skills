@@ -72,7 +72,7 @@ fn reports_conflicts_in_all_skills() {
 }
 
 #[test]
-fn requires_a_boolean_in_skill_frontmatter() {
+fn rejects_invalid_skill_frontmatter() {
     const MISSING_FLAG: &str = "disable-model-invocation must be an explicit boolean";
     let cases = [
         (
