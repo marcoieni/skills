@@ -77,6 +77,12 @@ fn requires_a_boolean_in_skill_frontmatter() {
             "---\ndisable-model-invocation: false\n",
             "missing closing --- for YAML frontmatter",
         ),
+        // Claude Code ends the frontmatter at the first `---` anywhere, even inside a comment,
+        // so it would never see the flag below it.
+        (
+            "---\nname: x\n# ---- invocation ----\ndisable-model-invocation: false\n---\n",
+            "frontmatter must not contain --- before the closing delimiter",
+        ),
         ("---\nname: missing\n---\n", MISSING_FLAG),
         // Neither Markdown body text nor a description supplies the metadata flag.
         (

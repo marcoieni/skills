@@ -58,6 +58,10 @@ fn frontmatter(markdown: &str) -> Result<&str, &'static str> {
         if is_delimiter(line) {
             return Ok(&markdown[start..end]);
         }
+        // Claude Code ends the frontmatter at the first `---`, even mid-line.
+        if line.contains("---") {
+            return Err("frontmatter must not contain --- before the closing delimiter");
+        }
         end += line.len();
     }
     Err("missing closing --- for YAML frontmatter")
