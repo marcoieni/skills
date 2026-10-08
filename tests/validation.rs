@@ -19,15 +19,10 @@ fn validate(root: &Path) -> Output {
         .unwrap()
 }
 
-fn assert_failure(output: Output, expected: &[&str]) {
+// Comparing all of stderr also proves that no other error, such as a conflict, was reported.
+fn assert_failure(output: Output, expected_stderr: &str) {
     assert_eq!(output.status.code(), Some(1));
-    let stderr = String::from_utf8(output.stderr).unwrap();
-    for expected in expected {
-        assert!(
-            stderr.contains(expected),
-            "expected {expected:?} in {stderr}"
-        );
-    }
+    assert_eq!(String::from_utf8(output.stderr).unwrap(), expected_stderr);
 }
 
 #[test]
@@ -58,24 +53,19 @@ fn accepts_both_invocation_modes() {
 #[test]
 fn reports_conflicts_in_all_skills() {
     let repository = tempfile::tempdir().unwrap();
-    for (directory, value) in [("skills/manual", true), ("draft-skills/automatic", false)] {
+    let mut expected = String::new();
+    for (directory, value) in [("draft-skills/automatic", false), ("skills/manual", true)] {
         write_skill(
             repository.path(),
             directory,
             &format!("---\ndisable-model-invocation: {value}\n---\n"),
             Some(&format!("policy:\n  allow_implicit_invocation: {value}\n")),
         );
+        expected += &format!(
+            "{directory}/SKILL.md: disable-model-invocation is {value}, but {directory}/agents/openai.yaml: policy.allow_implicit_invocation is {value}; they must be opposite booleans\n"
+        );
     }
-    assert_failure(
-        validate(repository.path()),
-        &[
-            "skills/manual/SKILL.md",
-            "skills/manual/agents/openai.yaml",
-            "draft-skills/automatic/SKILL.md",
-            "draft-skills/automatic/agents/openai.yaml",
-            "they must be opposite booleans",
-        ],
-    );
+    assert_failure(validate(repository.path()), &expected);
 }
 
 #[test]
@@ -87,22 +77,25 @@ fn requires_a_boolean_in_skill_frontmatter() {
             "expected YAML frontmatter starting with ---",
         ),
         (
-            "---\ndisable-model-invocation: true\n",
+            "---\ndisable-model-invocation: false\n",
             "missing closing --- for YAML frontmatter",
         ),
         ("---\nname: missing\n---\n", MISSING_FLAG),
         // Neither Markdown body text nor a description supplies the metadata flag.
         (
-            "---\nname: missing\n---\ndisable-model-invocation: true\n",
+            "---\nname: missing\n---\ndisable-model-invocation: false\n",
             MISSING_FLAG,
         ),
         (
-            "---\ndescription: |\n  disable-model-invocation: true\n---\n",
+            "---\ndescription: |\n  disable-model-invocation: false\n---\n",
             MISSING_FLAG,
         ),
-        ("---\ndisable-model-invocation: 'true'\n---\n", MISSING_FLAG),
+        (
+            "---\ndisable-model-invocation: 'false'\n---\n",
+            MISSING_FLAG,
+        ),
         ("---\ndisable-model-invocation: null\n---\n", MISSING_FLAG),
-        ("---\ndisable-model-invocation: 1\n---\n", MISSING_FLAG),
+        ("---\ndisable-model-invocation: 0\n---\n", MISSING_FLAG),
         ("---\ndisable-model-invocation: [\n---\n", SYNTAX_ERROR),
         (
             "---\ndisable-model-invocation: true\ndisable-model-invocation: false\n---\n",
@@ -111,15 +104,17 @@ fn requires_a_boolean_in_skill_frontmatter() {
     ];
     for (markdown, error) in cases {
         let repository = tempfile::tempdir().unwrap();
+        // Claude Code defaults a missing flag to `false`, and each value above that must be
+        // ignored is `false`-like, so pairing with `true` makes a too-lenient validator pass.
         write_skill(
             repository.path(),
             "skills/invalid",
             markdown,
-            Some("policy:\n  allow_implicit_invocation: false\n"),
+            Some("policy:\n  allow_implicit_invocation: true\n"),
         );
         assert_failure(
             validate(repository.path()),
-            &[&format!("skills/invalid/SKILL.md: {error}")],
+            &format!("skills/invalid/SKILL.md: {error}\n"),
         );
     }
 }
@@ -133,11 +128,11 @@ fn requires_agent_metadata_with_an_explicit_policy_boolean() {
         (Some("policy: {}\n"), MISSING_POLICY),
         // A flag at the top level must not stand in for the policy setting.
         (
-            Some("allow_implicit_invocation: false\npolicy: {}\n"),
+            Some("allow_implicit_invocation: true\npolicy: {}\n"),
             MISSING_POLICY,
         ),
         (
-            Some("policy:\n  allow_implicit_invocation: 'false'\n"),
+            Some("policy:\n  allow_implicit_invocation: 'true'\n"),
             MISSING_POLICY,
         ),
         (
@@ -145,7 +140,7 @@ fn requires_agent_metadata_with_an_explicit_policy_boolean() {
             MISSING_POLICY,
         ),
         (
-            Some("policy:\n  allow_implicit_invocation: 0\n"),
+            Some("policy:\n  allow_implicit_invocation: 1\n"),
             MISSING_POLICY,
         ),
         (Some("policy: [\n"), SYNTAX_ERROR),
@@ -158,15 +153,18 @@ fn requires_agent_metadata_with_an_explicit_policy_boolean() {
     ];
     for (agent, error) in cases {
         let repository = tempfile::tempdir().unwrap();
+        // Codex defaults a missing `allow_implicit_invocation` to `true`, and each value above
+        // that must be ignored is `true`-like, so pairing with `false` makes a too-lenient
+        // validator pass.
         write_skill(
             repository.path(),
             "draft-skills/invalid",
-            "---\ndisable-model-invocation: true\n---\n",
+            "---\ndisable-model-invocation: false\n---\n",
             agent,
         );
         assert_failure(
             validate(repository.path()),
-            &[&format!("draft-skills/invalid/agents/openai.yaml: {error}")],
+            &format!("draft-skills/invalid/agents/openai.yaml: {error}\n"),
         );
     }
 }
@@ -174,5 +172,8 @@ fn requires_agent_metadata_with_an_explicit_policy_boolean() {
 #[test]
 fn fails_if_no_skills_are_found() {
     let repository = tempfile::tempdir().unwrap();
-    assert_failure(validate(repository.path()), &["no SKILL.md files found"]);
+    assert_failure(
+        validate(repository.path()),
+        "no SKILL.md files found in skills/ or draft-skills/\n",
+    );
 }
