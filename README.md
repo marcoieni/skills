@@ -30,4 +30,4 @@ cargo run --locked
 ```
 
 It searches both directories recursively and exits with a nonzero status if any
-skill breaks these rules or if no skills are found.
+skill's settings can't be read or break these rules, or if no skills are found.
