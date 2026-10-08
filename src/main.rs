@@ -1,21 +1,5 @@
-use serde::Deserialize;
 use std::{fs, path::Path, path::PathBuf, process::ExitCode};
-
-#[derive(Deserialize)]
-struct SkillMetadata {
-    #[serde(rename = "disable-model-invocation")]
-    disable_model_invocation: bool,
-}
-
-#[derive(Deserialize)]
-struct AgentMetadata {
-    policy: InvocationPolicy,
-}
-
-#[derive(Deserialize)]
-struct InvocationPolicy {
-    allow_implicit_invocation: bool,
-}
+use yaml_serde::Value;
 
 fn main() -> ExitCode {
     match validate_repository(Path::new(".")) {
@@ -102,20 +86,32 @@ fn validate_skill(skill_path: &Path) -> Result<(), String> {
     let markdown = read_file(skill_path)?;
     let yaml =
         frontmatter(&markdown).map_err(|error| format!("{}: {error}", skill_path.display()))?;
-    let skill: SkillMetadata = yaml_serde::from_str(&yaml)
+    let skill: Value = yaml_serde::from_str(&yaml)
         .map_err(|error| format!("{}: {error}", skill_path.display()))?;
+    let disabled = skill["disable-model-invocation"].as_bool().ok_or_else(|| {
+        format!(
+            "{}: disable-model-invocation must be an explicit boolean",
+            skill_path.display()
+        )
+    })?;
 
     let agent_path = skill_path.parent().unwrap().join("agents/openai.yaml");
-    let agent: AgentMetadata = yaml_serde::from_str(&read_file(&agent_path)?)
+    let agent: Value = yaml_serde::from_str(&read_file(&agent_path)?)
         .map_err(|error| format!("{}: {error}", agent_path.display()))?;
+    let allowed = agent["policy"]["allow_implicit_invocation"]
+        .as_bool()
+        .ok_or_else(|| {
+            format!(
+                "{}: policy.allow_implicit_invocation must be an explicit boolean",
+                agent_path.display()
+            )
+        })?;
 
-    if skill.disable_model_invocation == agent.policy.allow_implicit_invocation {
+    if disabled == allowed {
         return Err(format!(
-            "{}: disable-model-invocation is {}, but {}: policy.allow_implicit_invocation is {}; they must be opposite booleans",
+            "{}: disable-model-invocation is {disabled}, but {}: policy.allow_implicit_invocation is {allowed}; they must be opposite booleans",
             skill_path.display(),
-            skill.disable_model_invocation,
             agent_path.display(),
-            agent.policy.allow_implicit_invocation,
         ));
     }
     Ok(())

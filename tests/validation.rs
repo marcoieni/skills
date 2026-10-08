@@ -1,5 +1,8 @@
 use std::{fs, path::Path, process::Command, process::Output};
 
+const SYNTAX_ERROR: &str =
+    "did not find expected node content at line 2 column 1, while parsing a flow node";
+
 fn write_skill(root: &Path, directory: &str, markdown: &str, agent: Option<&str>) {
     let directory = root.join(directory);
     fs::create_dir_all(directory.join("agents")).unwrap();
@@ -77,29 +80,33 @@ fn reports_conflicts_in_all_skills() {
 
 #[test]
 fn requires_a_boolean_in_skill_frontmatter() {
+    const MISSING_FLAG: &str = "disable-model-invocation must be an explicit boolean";
     let cases = [
-        ("# No frontmatter\n", "expected YAML frontmatter"),
+        (
+            "# No frontmatter\n",
+            "expected YAML frontmatter starting with ---",
+        ),
         (
             "---\ndisable-model-invocation: true\n",
-            "missing closing ---",
+            "missing closing --- for YAML frontmatter",
         ),
-        ("---\nname: missing\n---\n", "disable-model-invocation"),
+        ("---\nname: missing\n---\n", MISSING_FLAG),
         // Neither Markdown body text nor a description supplies the metadata flag.
         (
             "---\nname: missing\n---\ndisable-model-invocation: true\n",
-            "disable-model-invocation",
+            MISSING_FLAG,
         ),
         (
             "---\ndescription: |\n  disable-model-invocation: true\n---\n",
-            "disable-model-invocation",
+            MISSING_FLAG,
         ),
-        ("---\ndisable-model-invocation: 'true'\n---\n", "boolean"),
-        ("---\ndisable-model-invocation: null\n---\n", "boolean"),
-        ("---\ndisable-model-invocation: 1\n---\n", "boolean"),
-        ("---\ndisable-model-invocation: [\n---\n", "invalid type"),
+        ("---\ndisable-model-invocation: 'true'\n---\n", MISSING_FLAG),
+        ("---\ndisable-model-invocation: null\n---\n", MISSING_FLAG),
+        ("---\ndisable-model-invocation: 1\n---\n", MISSING_FLAG),
+        ("---\ndisable-model-invocation: [\n---\n", SYNTAX_ERROR),
         (
             "---\ndisable-model-invocation: true\ndisable-model-invocation: false\n---\n",
-            "duplicate field",
+            "duplicate entry with key \"disable-model-invocation\"",
         ),
     ];
     for (markdown, error) in cases {
@@ -112,37 +119,41 @@ fn requires_a_boolean_in_skill_frontmatter() {
         );
         assert_failure(
             validate(repository.path()),
-            &["skills/invalid/SKILL.md", error],
+            &[&format!("skills/invalid/SKILL.md: {error}")],
         );
     }
 }
 
 #[test]
 fn requires_agent_metadata_with_an_explicit_policy_boolean() {
+    const MISSING_POLICY: &str = "policy.allow_implicit_invocation must be an explicit boolean";
     let cases = [
-        (None, "openai.yaml"),
-        (Some("interface: {}\n"), "policy"),
-        (Some("policy: {}\n"), "allow_implicit_invocation"),
+        (None, "No such file or directory (os error 2)"),
+        (Some("interface: {}\n"), MISSING_POLICY),
+        (Some("policy: {}\n"), MISSING_POLICY),
         // A flag at the top level must not stand in for the policy setting.
         (
             Some("allow_implicit_invocation: false\npolicy: {}\n"),
-            "allow_implicit_invocation",
+            MISSING_POLICY,
         ),
         (
             Some("policy:\n  allow_implicit_invocation: 'false'\n"),
-            "boolean",
+            MISSING_POLICY,
         ),
         (
             Some("policy:\n  allow_implicit_invocation: null\n"),
-            "boolean",
+            MISSING_POLICY,
         ),
-        (Some("policy:\n  allow_implicit_invocation: 0\n"), "boolean"),
-        (Some("policy: [\n"), "invalid type"),
+        (
+            Some("policy:\n  allow_implicit_invocation: 0\n"),
+            MISSING_POLICY,
+        ),
+        (Some("policy: [\n"), SYNTAX_ERROR),
         (
             Some(
                 "policy:\n  allow_implicit_invocation: false\n  allow_implicit_invocation: true\n",
             ),
-            "duplicate field",
+            "policy: duplicate entry with key \"allow_implicit_invocation\" at line 2 column 3",
         ),
     ];
     for (agent, error) in cases {
@@ -155,7 +166,7 @@ fn requires_agent_metadata_with_an_explicit_policy_boolean() {
         );
         assert_failure(
             validate(repository.path()),
-            &["draft-skills/invalid/agents/openai.yaml", error],
+            &[&format!("draft-skills/invalid/agents/openai.yaml: {error}")],
         );
     }
 }
