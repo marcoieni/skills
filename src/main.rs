@@ -66,27 +66,33 @@ fn frontmatter(markdown: &str) -> Result<&str, &'static str> {
     Err("missing closing --- for YAML frontmatter")
 }
 
-/// Reads the boolean at the dotted `key` of the YAML that `yaml` extracts from `path`.
-fn read_flag(
+/// Reads `path` and parses its text, prefixing any error with the path.
+fn read(
     path: &Path,
-    key: &str,
-    yaml: fn(&str) -> Result<&str, &'static str>,
+    parse: impl FnOnce(&str) -> Result<bool, Box<dyn Error>>,
 ) -> Result<bool, String> {
-    let read = || -> Result<bool, Box<dyn Error>> {
-        let value: Value = yaml_serde::from_str(yaml(&fs::read_to_string(path)?)?)?;
-        key.split('.')
-            .fold(&value, |value, key| &value[key])
-            .as_bool()
-            .ok_or_else(|| format!("{key} must be an explicit boolean").into())
-    };
-    read().map_err(|error| format!("{}: {error}", path.display()))
+    fs::read_to_string(path)
+        .map_err(Box::from)
+        .and_then(|text| parse(&text))
+        .map_err(|error| format!("{}: {error}", path.display()))
+}
+
+/// Returns the boolean at the dotted `key` of `yaml`.
+fn flag(yaml: &str, key: &str) -> Result<bool, Box<dyn Error>> {
+    let value: Value = yaml_serde::from_str(yaml)?;
+    key.split('.')
+        .fold(&value, |node, part| &node[part])
+        .as_bool()
+        .ok_or_else(|| format!("{key} must be an explicit boolean").into())
 }
 
 fn validate_skill(skill_path: &Path) -> Result<(), String> {
-    let disabled = read_flag(skill_path, "disable-model-invocation", frontmatter)?;
+    let disabled = read(skill_path, |text| {
+        flag(frontmatter(text)?, "disable-model-invocation")
+    })?;
     let agent_path = skill_path.with_file_name("agents/openai.yaml");
-    let allowed = read_flag(&agent_path, "policy.allow_implicit_invocation", |yaml| {
-        Ok(yaml)
+    let allowed = read(&agent_path, |text| {
+        flag(text, "policy.allow_implicit_invocation")
     })?;
     if disabled == allowed {
         return Err(format!(
