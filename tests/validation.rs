@@ -79,6 +79,12 @@ fn rejects_invalid_skill_frontmatter() {
             "# No frontmatter\n",
             "expected YAML frontmatter starting with ---",
         ),
+        // Codex finds the frontmatter with `line.trim() == "---"`, but Claude Code only finds it
+        // when `---` starts the file.
+        (
+            " ---\ndisable-model-invocation: false\n---\n",
+            "expected YAML frontmatter starting with ---",
+        ),
         // Codex keeps a byte order mark when reading a skill and finds the frontmatter with
         // `line.trim() == "---"`, so it fails to load this skill.
         (
