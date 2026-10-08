@@ -45,7 +45,7 @@ fn collect_skills(directory: &Path, skills: &mut Vec<PathBuf>) -> io::Result<()>
 }
 
 fn frontmatter(markdown: &str) -> Result<&str, &'static str> {
-    let is_delimiter = |line: &str| matches!(line, "---" | "---\n" | "---\r\n");
+    let is_delimiter = |line: &str| line.trim_end() == "---";
     let markdown = markdown.trim_start_matches('\u{feff}');
     let mut lines = markdown.split_inclusive('\n');
     let start = lines

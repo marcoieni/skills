@@ -27,10 +27,11 @@ fn accepts_both_invocation_modes() {
     // There is deliberately no draft-skills/ directory: git can't track it once its last
     // skill is gone, so a missing skill directory must count as having no skills.
     let repository = tempfile::tempdir().unwrap();
+    // Claude Code and Codex both accept trailing whitespace after the `---` delimiters.
     write_skill(
         repository.path(),
         "skills/automatic",
-        "---\nname: automatic\ndisable-model-invocation: false # explicit\n---\n# Body\n",
+        "--- \nname: automatic\ndisable-model-invocation: false # explicit\n---\t\n# Body\n",
         Some("interface: {display_name: Automatic}\npolicy: {allow_implicit_invocation: true}\n"),
     );
     write_skill(
