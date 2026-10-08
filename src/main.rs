@@ -1,112 +1,90 @@
-use std::{fs, path::Path, path::PathBuf, process::ExitCode};
+use std::{error::Error, fs, io, path::Path, path::PathBuf, process::ExitCode};
 use yaml_serde::Value;
 
 fn main() -> ExitCode {
-    match validate_repository(Path::new(".")) {
-        Ok(count) => {
-            println!("Validated invocation settings for {count} skills.");
-            ExitCode::SUCCESS
-        }
-        Err(errors) => {
-            for error in errors {
-                eprintln!("{error}");
-            }
-            ExitCode::FAILURE
-        }
-    }
-}
-
-fn validate_repository(root: &Path) -> Result<usize, Vec<String>> {
     let mut skills = Vec::new();
-    let mut errors = Vec::new();
-    for directory in ["skills", "draft-skills"] {
-        let directory = root.join(directory);
+    let mut failed = false;
+    for directory in ["skills", "draft-skills"].map(Path::new) {
         // Git doesn't track empty directories, so a missing one just has no skills.
         if let Ok(false) = directory.try_exists() {
             continue;
         }
-        if let Err(error) = collect_skills(&directory, &mut skills) {
-            errors.push(error);
+        if let Err(error) = collect_skills(directory, &mut skills) {
+            eprintln!("{}: {error}", directory.display());
+            failed = true;
         }
     }
     skills.sort();
     if skills.is_empty() {
-        errors.push(format!("{}: no SKILL.md files found", root.display()));
+        eprintln!("no SKILL.md files found in skills/ or draft-skills/");
+        failed = true;
     }
     for skill in &skills {
         if let Err(error) = validate_skill(skill) {
-            errors.push(error);
+            eprintln!("{error}");
+            failed = true;
         }
     }
-    if errors.is_empty() {
-        Ok(skills.len())
-    } else {
-        Err(errors)
+    if failed {
+        return ExitCode::FAILURE;
     }
+    println!("Validated invocation settings for {} skills.", skills.len());
+    ExitCode::SUCCESS
 }
 
-fn collect_skills(directory: &Path, skills: &mut Vec<PathBuf>) -> Result<(), String> {
-    let entries =
-        fs::read_dir(directory).map_err(|error| format!("{}: {error}", directory.display()))?;
-    for entry in entries {
-        let entry = entry.map_err(|error| format!("{}: {error}", directory.display()))?;
-        let path = entry.path();
-        let file_type = entry
-            .file_type()
-            .map_err(|error| format!("{}: {error}", path.display()))?;
-        if file_type.is_dir() {
-            collect_skills(&path, skills)?;
+fn collect_skills(directory: &Path, skills: &mut Vec<PathBuf>) -> io::Result<()> {
+    for entry in fs::read_dir(directory)? {
+        let entry = entry?;
+        if entry.file_type()?.is_dir() {
+            collect_skills(&entry.path(), skills)?;
         } else if entry.file_name() == "SKILL.md" {
-            skills.push(path);
+            skills.push(entry.path());
         }
     }
     Ok(())
 }
 
-fn read_file(path: &Path) -> Result<String, String> {
-    fs::read_to_string(path).map_err(|error| format!("{}: {error}", path.display()))
-}
-
-fn frontmatter(markdown: &str) -> Result<String, &str> {
-    let mut lines = markdown.trim_start_matches('\u{feff}').lines();
-    if lines.next() != Some("---") {
-        return Err("expected YAML frontmatter starting with ---");
-    }
-    let mut yaml = Vec::new();
+fn frontmatter(markdown: &str) -> Result<&str, &'static str> {
+    let is_delimiter = |line: &str| matches!(line, "---" | "---\n" | "---\r\n");
+    let markdown = markdown.trim_start_matches('\u{feff}');
+    let mut lines = markdown.split_inclusive('\n');
+    let start = lines
+        .next()
+        .filter(|line| is_delimiter(line))
+        .ok_or("expected YAML frontmatter starting with ---")?
+        .len();
+    let mut end = start;
     for line in lines {
-        if line == "---" {
-            return Ok(yaml.join("\n"));
+        if is_delimiter(line) {
+            return Ok(&markdown[start..end]);
         }
-        yaml.push(line);
+        end += line.len();
     }
     Err("missing closing --- for YAML frontmatter")
 }
 
+/// Reads the boolean at the dotted `key` of the YAML that `yaml` extracts from `path`.
+fn read_flag(
+    path: &Path,
+    key: &str,
+    yaml: fn(&str) -> Result<&str, &'static str>,
+) -> Result<bool, String> {
+    let read = || -> Result<bool, Box<dyn Error>> {
+        let value: Value = yaml_serde::from_str(yaml(&fs::read_to_string(path)?)?)?;
+        key.split('.')
+            .fold(&value, |value, key| &value[key])
+            .as_bool()
+            .ok_or_else(|| format!("{key} must be an explicit boolean").into())
+    };
+    read().map_err(|error| format!("{}: {error}", path.display()))
+}
+
 fn validate_skill(skill_path: &Path) -> Result<(), String> {
-    let markdown = read_file(skill_path)?;
-    let yaml =
-        frontmatter(&markdown).map_err(|error| format!("{}: {error}", skill_path.display()))?;
-    let skill: Value = yaml_serde::from_str(&yaml)
-        .map_err(|error| format!("{}: {error}", skill_path.display()))?;
-    let disabled = skill["disable-model-invocation"].as_bool().ok_or_else(|| {
-        format!(
-            "{}: disable-model-invocation must be an explicit boolean",
-            skill_path.display()
-        )
+    let disabled = read_flag(skill_path, "disable-model-invocation", frontmatter)?;
+    let agent_path = skill_path.with_file_name("agents/openai.yaml");
+    let allowed = read_flag(&agent_path, "policy.allow_implicit_invocation", |yaml| {
+        Ok(yaml)
     })?;
-
-    let agent_path = skill_path.parent().unwrap().join("agents/openai.yaml");
-    let agent: Value = yaml_serde::from_str(&read_file(&agent_path)?)
-        .map_err(|error| format!("{}: {error}", agent_path.display()))?;
-    let allowed = agent["policy"]["allow_implicit_invocation"]
-        .as_bool()
-        .ok_or_else(|| {
-            format!(
-                "{}: policy.allow_implicit_invocation must be an explicit boolean",
-                agent_path.display()
-            )
-        })?;
-
     if disabled == allowed {
         return Err(format!(
             "{}: disable-model-invocation is {disabled}, but {}: policy.allow_implicit_invocation is {allowed}; they must be opposite booleans",
