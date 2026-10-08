@@ -29,7 +29,6 @@ Run the Rust validator from the repository root:
 cargo run --locked
 ```
 
-An optional repository path can be passed with `cargo run --locked -- /path/to/skills`.
 The validator searches both skill directories recursively, reports invalid files,
 and exits unsuccessfully if any settings are missing, malformed, or inconsistent,
 or if no skills are found. Both skill directories must exist.

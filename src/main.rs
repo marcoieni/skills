@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::{env, fs, path::Path, path::PathBuf, process::ExitCode};
+use std::{fs, path::Path, path::PathBuf, process::ExitCode};
 
 #[derive(Deserialize)]
 struct SkillMetadata {
@@ -18,16 +18,7 @@ struct InvocationPolicy {
 }
 
 fn main() -> ExitCode {
-    let mut args = env::args_os().skip(1);
-    let root = args
-        .next()
-        .map_or_else(|| PathBuf::from("."), PathBuf::from);
-    if args.next().is_some() {
-        eprintln!("Usage: validate-skill-invocation [repository-root]");
-        return ExitCode::FAILURE;
-    }
-
-    match validate_repository(&root) {
+    match validate_repository(Path::new(".")) {
         Ok(count) => {
             println!("Validated invocation settings for {count} skills.");
             ExitCode::SUCCESS

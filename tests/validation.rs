@@ -20,7 +20,7 @@ fn write_skill(root: &Path, directory: &str, markdown: &str, agent: Option<&str>
 
 fn validate(root: &Path) -> Output {
     Command::new(env!("CARGO_BIN_EXE_validate-skill-invocation"))
-        .arg(root)
+        .current_dir(root)
         .output()
         .unwrap()
 }
@@ -177,29 +177,4 @@ fn fails_if_no_skills_are_found() {
 fn reports_missing_skill_directories() {
     let repository = tempfile::tempdir().unwrap();
     assert_failure(validate(repository.path()), &["skills", "draft-skills"]);
-}
-
-#[test]
-fn defaults_to_the_current_directory() {
-    let repository = repository();
-    write_skill(
-        repository.path(),
-        "skills/manual",
-        "---\ndisable-model-invocation: true\n---\n",
-        Some("policy: {allow_implicit_invocation: false}\n"),
-    );
-    let output = Command::new(env!("CARGO_BIN_EXE_validate-skill-invocation"))
-        .current_dir(repository.path())
-        .output()
-        .unwrap();
-    assert!(output.status.success(), "{:?}", output);
-}
-
-#[test]
-fn rejects_extra_arguments() {
-    let output = Command::new(env!("CARGO_BIN_EXE_validate-skill-invocation"))
-        .args([".", "unexpected"])
-        .output()
-        .unwrap();
-    assert_failure(output, &["Usage:"]);
 }
