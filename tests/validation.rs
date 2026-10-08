@@ -74,6 +74,12 @@ fn requires_a_boolean_in_skill_frontmatter() {
             "# No frontmatter\n",
             "expected YAML frontmatter starting with ---",
         ),
+        // Codex finds the frontmatter with `line.trim() == "---"`, which keeps a byte order
+        // mark, so it likely wouldn't load this skill's metadata.
+        (
+            "\u{feff}---\ndisable-model-invocation: false\n---\n",
+            "expected YAML frontmatter starting with ---",
+        ),
         (
             "---\ndisable-model-invocation: false\n",
             "missing closing --- for YAML frontmatter",
