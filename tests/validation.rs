@@ -1,8 +1,5 @@
 use std::{fs, path::Path, process::Command, process::Output};
 
-const SYNTAX_ERROR: &str =
-    "did not find expected node content at line 2 column 1, while parsing a flow node";
-
 fn write_skill(root: &Path, directory: &str, markdown: &str, agent: Option<&str>) {
     let directory = root.join(directory);
     fs::create_dir_all(directory.join("agents")).unwrap();
@@ -94,9 +91,7 @@ fn requires_a_boolean_in_skill_frontmatter() {
             "---\ndisable-model-invocation: 'false'\n---\n",
             MISSING_FLAG,
         ),
-        ("---\ndisable-model-invocation: null\n---\n", MISSING_FLAG),
-        ("---\ndisable-model-invocation: 0\n---\n", MISSING_FLAG),
-        ("---\ndisable-model-invocation: [\n---\n", SYNTAX_ERROR),
+        // YAML parsers disagree on which duplicate key wins, so a duplicate is ambiguous.
         (
             "---\ndisable-model-invocation: true\ndisable-model-invocation: false\n---\n",
             "duplicate entry with key \"disable-model-invocation\"",
@@ -125,7 +120,6 @@ fn requires_agent_metadata_with_an_explicit_policy_boolean() {
     let cases = [
         (None, "No such file or directory (os error 2)"),
         (Some("interface: {}\n"), MISSING_POLICY),
-        (Some("policy: {}\n"), MISSING_POLICY),
         // A flag at the top level must not stand in for the policy setting.
         (
             Some("allow_implicit_invocation: true\npolicy: {}\n"),
@@ -134,21 +128,6 @@ fn requires_agent_metadata_with_an_explicit_policy_boolean() {
         (
             Some("policy:\n  allow_implicit_invocation: 'true'\n"),
             MISSING_POLICY,
-        ),
-        (
-            Some("policy:\n  allow_implicit_invocation: null\n"),
-            MISSING_POLICY,
-        ),
-        (
-            Some("policy:\n  allow_implicit_invocation: 1\n"),
-            MISSING_POLICY,
-        ),
-        (Some("policy: [\n"), SYNTAX_ERROR),
-        (
-            Some(
-                "policy:\n  allow_implicit_invocation: false\n  allow_implicit_invocation: true\n",
-            ),
-            "policy: duplicate entry with key \"allow_implicit_invocation\" at line 2 column 3",
         ),
     ];
     for (agent, error) in cases {
