@@ -168,6 +168,23 @@ fn requires_agent_metadata_with_an_explicit_policy_boolean() {
 }
 
 #[test]
+fn fails_if_a_skill_directory_cannot_be_read() {
+    // A file named `skills` can't be listed, and the valid draft skill must not mask that error.
+    let repository = tempfile::tempdir().unwrap();
+    fs::write(repository.path().join("skills"), "").unwrap();
+    write_skill(
+        repository.path(),
+        "draft-skills/valid",
+        "---\ndisable-model-invocation: false\n---\n",
+        Some("policy:\n  allow_implicit_invocation: true\n"),
+    );
+    assert_failure(
+        validate(repository.path()),
+        "skills: Not a directory (os error 20)\n",
+    );
+}
+
+#[test]
 fn fails_if_no_skills_are_found() {
     // Otherwise running from the wrong directory would silently pass.
     let repository = tempfile::tempdir().unwrap();
