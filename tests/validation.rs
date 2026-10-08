@@ -1,13 +1,4 @@
 use std::{fs, path::Path, process::Command, process::Output};
-use tempfile::TempDir;
-
-fn repository() -> TempDir {
-    let repository = tempfile::tempdir().unwrap();
-    for directory in ["skills", "draft-skills"] {
-        fs::create_dir(repository.path().join(directory)).unwrap();
-    }
-    repository
-}
 
 fn write_skill(root: &Path, directory: &str, markdown: &str, agent: Option<&str>) {
     let directory = root.join(directory);
@@ -37,8 +28,10 @@ fn assert_failure(output: Output, expected: &[&str]) {
 }
 
 #[test]
-fn accepts_both_invocation_modes_including_nested_drafts() {
-    let repository = repository();
+fn accepts_both_invocation_modes() {
+    // There is deliberately no draft-skills/ directory: git can't track it once its last
+    // skill is gone, so a missing skill directory must count as having no skills.
+    let repository = tempfile::tempdir().unwrap();
     write_skill(
         repository.path(),
         "skills/automatic",
@@ -47,7 +40,7 @@ fn accepts_both_invocation_modes_including_nested_drafts() {
     );
     write_skill(
         repository.path(),
-        "draft-skills/category/manual",
+        "skills/category/manual",
         "---\r\nname: manual\r\ndisable-model-invocation: true\r\n---\r\n",
         Some("policy:\n  allow_implicit_invocation: false\n"),
     );
@@ -61,7 +54,7 @@ fn accepts_both_invocation_modes_including_nested_drafts() {
 
 #[test]
 fn reports_conflicts_in_all_skills() {
-    let repository = repository();
+    let repository = tempfile::tempdir().unwrap();
     for (directory, value) in [("skills/manual", true), ("draft-skills/automatic", false)] {
         write_skill(
             repository.path(),
@@ -110,7 +103,7 @@ fn requires_a_boolean_in_skill_frontmatter() {
         ),
     ];
     for (markdown, error) in cases {
-        let repository = repository();
+        let repository = tempfile::tempdir().unwrap();
         write_skill(
             repository.path(),
             "skills/invalid",
@@ -153,7 +146,7 @@ fn requires_agent_metadata_with_an_explicit_policy_boolean() {
         ),
     ];
     for (agent, error) in cases {
-        let repository = repository();
+        let repository = tempfile::tempdir().unwrap();
         write_skill(
             repository.path(),
             "draft-skills/invalid",
@@ -169,12 +162,6 @@ fn requires_agent_metadata_with_an_explicit_policy_boolean() {
 
 #[test]
 fn fails_if_no_skills_are_found() {
-    let repository = repository();
-    assert_failure(validate(repository.path()), &["no SKILL.md files found"]);
-}
-
-#[test]
-fn reports_missing_skill_directories() {
     let repository = tempfile::tempdir().unwrap();
-    assert_failure(validate(repository.path()), &["skills", "draft-skills"]);
+    assert_failure(validate(repository.path()), &["no SKILL.md files found"]);
 }

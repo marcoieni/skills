@@ -31,6 +31,6 @@ cargo run --locked
 
 The validator searches both skill directories recursively, reports invalid files,
 and exits unsuccessfully if any settings are missing, malformed, or inconsistent,
-or if no skills are found. Both skill directories must exist.
+or if no skills are found.
 GitHub Actions runs this check, the tests, formatting, and Clippy on every push and
 pull request.

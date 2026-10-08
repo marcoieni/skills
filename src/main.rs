@@ -36,7 +36,12 @@ fn validate_repository(root: &Path) -> Result<usize, Vec<String>> {
     let mut skills = Vec::new();
     let mut errors = Vec::new();
     for directory in ["skills", "draft-skills"] {
-        if let Err(error) = collect_skills(&root.join(directory), &mut skills) {
+        let directory = root.join(directory);
+        // Git doesn't track empty directories, so a missing one just has no skills.
+        if let Ok(false) = directory.try_exists() {
+            continue;
+        }
+        if let Err(error) = collect_skills(&directory, &mut skills) {
             errors.push(error);
         }
     }
