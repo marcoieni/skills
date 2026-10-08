@@ -119,7 +119,8 @@ fn requires_a_boolean_in_skill_frontmatter() {
     for (markdown, error) in cases {
         let repository = tempfile::tempdir().unwrap();
         // Claude Code defaults a missing flag to `false`, and each value above that must be
-        // ignored is `false`-like, so pairing with `true` makes a too-lenient validator pass.
+        // ignored is `false`-like, so with `true` here a validator that accepted any of them
+        // would see no conflict and wrongly succeed.
         write_skill(
             repository.path(),
             "skills/invalid",
@@ -152,8 +153,8 @@ fn requires_agent_metadata_with_an_explicit_policy_boolean() {
     for (agent, error) in cases {
         let repository = tempfile::tempdir().unwrap();
         // Codex defaults a missing `allow_implicit_invocation` to `true`, and each value above
-        // that must be ignored is `true`-like, so pairing with `false` makes a too-lenient
-        // validator pass.
+        // that must be ignored is `true`-like, so with `false` here a validator that accepted
+        // any of them would see no conflict and wrongly succeed.
         write_skill(
             repository.path(),
             "draft-skills/invalid",
