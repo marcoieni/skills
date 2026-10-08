@@ -106,11 +106,11 @@ fn validate_skill(skill_path: &Path) -> Result<(), String> {
     let markdown = read_file(skill_path)?;
     let yaml =
         frontmatter(&markdown).map_err(|error| format!("{}: {error}", skill_path.display()))?;
-    let skill: SkillMetadata = serde_yaml_ng::from_str(&yaml)
+    let skill: SkillMetadata = yaml_serde::from_str(&yaml)
         .map_err(|error| format!("{}: {error}", skill_path.display()))?;
 
     let agent_path = skill_path.parent().unwrap().join("agents/openai.yaml");
-    let agent: AgentMetadata = serde_yaml_ng::from_str(&read_file(&agent_path)?)
+    let agent: AgentMetadata = yaml_serde::from_str(&read_file(&agent_path)?)
         .map_err(|error| format!("{}: {error}", agent_path.display()))?;
 
     if skill.disable_model_invocation == agent.policy.allow_implicit_invocation {
