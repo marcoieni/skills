@@ -23,14 +23,11 @@ Both values must be booleans and must be opposites:
 | Explicit only | `true` | `false` |
 | Implicit allowed | `false` | `true` |
 
-Run the Rust validator from the repository root:
+Run the validator from the repository root:
 
 ```sh
 cargo run --locked
 ```
 
-The validator searches both skill directories recursively, reports invalid files,
-and exits unsuccessfully if any settings are missing, malformed, or inconsistent,
-or if no skills are found.
-GitHub Actions runs this check, the tests, formatting, and Clippy on every push and
-pull request.
+It searches both directories recursively and exits with a nonzero status if any
+skill breaks these rules or if no skills are found.
