@@ -55,7 +55,8 @@ fn frontmatter(markdown: &str) -> Result<&str, &'static str> {
     let mut end = start;
     for line in lines {
         if is_delimiter(line) {
-            return Ok(&markdown[start..end]);
+            // Starting at the opening line's `\n` makes YAML error line numbers match the file.
+            return Ok(&markdown[start - 1..end]);
         }
         // Claude Code ends the frontmatter at the first `---`, even mid-line.
         if line.contains("---") {

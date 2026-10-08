@@ -109,10 +109,11 @@ fn requires_a_boolean_in_skill_frontmatter() {
             "---\ndisable-model-invocation: 'false'\n---\n",
             MISSING_FLAG,
         ),
-        // YAML parsers disagree on which duplicate key wins, so a duplicate is ambiguous.
+        // YAML parsers disagree on which duplicate key wins, so a duplicate is ambiguous. The
+        // error locates the mapping by its line in the file, not in the frontmatter.
         (
             "---\ndisable-model-invocation: true\ndisable-model-invocation: false\n---\n",
-            "duplicate entry with key \"disable-model-invocation\"",
+            "duplicate entry with key \"disable-model-invocation\" at line 2 column 1",
         ),
     ];
     for (markdown, error) in cases {
