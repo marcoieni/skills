@@ -45,6 +45,10 @@ fn collect_skills(directory: &Path, skills: &mut Vec<PathBuf>) -> io::Result<()>
 }
 
 fn frontmatter(markdown: &str) -> Result<&str, &'static str> {
+    // Editors hide a byte order mark, so the missing `---` error below would be confusing.
+    if markdown.starts_with('\u{feff}') {
+        return Err("file must not start with a byte order mark");
+    }
     let is_delimiter = |line: &str| line.trim_end() == "---";
     let mut lines = markdown.split_inclusive('\n');
     let start = lines
