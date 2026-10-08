@@ -27,13 +27,15 @@ fn accepts_both_invocation_modes() {
     // There is deliberately no draft-skills/ directory: git can't track it once its last
     // skill is gone, so a missing skill directory must count as having no skills.
     let repository = tempfile::tempdir().unwrap();
-    // Claude Code and Codex both accept trailing whitespace after the `---` delimiters.
+    // Claude Code and Codex both accept trailing whitespace after the `---` delimiters. The
+    // trailing comment and flow-style mappings are valid YAML that a line-based check would miss.
     write_skill(
         repository.path(),
         "skills/automatic",
         "--- \nname: automatic\ndisable-model-invocation: false # explicit\n---\t\n# Body\n",
         Some("interface: {display_name: Automatic}\npolicy: {allow_implicit_invocation: true}\n"),
     );
+    // Windows editors may save CRLF line endings, and skills can be grouped in subdirectories.
     write_skill(
         repository.path(),
         "skills/category/manual",
@@ -42,6 +44,7 @@ fn accepts_both_invocation_modes() {
     );
     let output = validate(repository.path());
     assert!(output.status.success(), "{:?}", output);
+    // The count proves the recursive search also found the nested skill.
     assert_eq!(
         String::from_utf8(output.stdout).unwrap(),
         "Validated invocation settings for 2 skills.\n"
@@ -50,6 +53,8 @@ fn accepts_both_invocation_modes() {
 
 #[test]
 fn reports_conflicts_in_all_skills() {
+    // Both skills conflict, so the output proves the validator reports every error instead of
+    // stopping at the first. Skills are checked in path order, so draft-skills/ comes first.
     let repository = tempfile::tempdir().unwrap();
     let mut expected = String::new();
     for (directory, value) in [("draft-skills/automatic", false), ("skills/manual", true)] {
@@ -163,6 +168,7 @@ fn requires_agent_metadata_with_an_explicit_policy_boolean() {
 
 #[test]
 fn fails_if_no_skills_are_found() {
+    // Otherwise running from the wrong directory would silently pass.
     let repository = tempfile::tempdir().unwrap();
     assert_failure(
         validate(repository.path()),
