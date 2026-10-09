@@ -10,7 +10,7 @@ Assumptions:
 Directories:
 
 * `skills/`: Skills I use.
-* `draft-skills/`: Draft skills I am working on.
+* `draft-skills/`: Draft skills I am working on (Don't install).
   I might never use them. They might be there just as ideas for the future.
 
 ## 📚 Docs
