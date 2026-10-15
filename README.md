@@ -13,7 +13,6 @@ Directories:
 * `draft-skills/`: Draft skills I am working on (Don't install).
   I might never use them. They might be there just as ideas for the future.
 * `settings/claude.json`: Claude Code settings I use.
-  They disable auto memory and the attribution Claude adds to commits and PRs.
 
 ## 📚 Docs
 
