@@ -1,6 +1,6 @@
 ---
 name: github-writer
-description: Write data in GitHub
+description: How to push commits and open Prs in GitHub
 disable-model-invocation: false
 ---
 
