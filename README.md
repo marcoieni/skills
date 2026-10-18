@@ -13,7 +13,7 @@ Directories:
 * `draft-skills/`: Draft skills I am working on (Don't install).
   I might never use them. They might be there just as ideas for the future.
 * `settings/claude.json`: Claude Code settings I use.
-* `scripts/install-ubuntu-server.sh`: Installs the system packages I need on Ubuntu Server.
+* `scripts/install-ubuntu-server.sh`: Installs the system packages I need on Ubuntu Server and sets up the [T3 Code](https://github.com/pingdotgg/t3code) browser.
 
 ## 📚 Docs
 
