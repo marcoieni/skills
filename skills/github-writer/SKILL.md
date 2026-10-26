@@ -18,6 +18,7 @@ disable-model-invocation: false
        If you agree, push a commit, if you disagree, reply explaining why.
 * When opening a PR, open it in draft.
 * When you are explaining how you validated your work, don't mention verification steps verified by CI.
+* Before writing anything (PR title, PR description, comments, etc), check for secrets and private details.
 
 ## Watching PRs on T3 code: `watch_pull_request`
 
