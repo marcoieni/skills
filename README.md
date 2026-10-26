@@ -26,3 +26,7 @@ Clone https://github.com/marcoieni/skills if absent and install the skills under
 Use symlinks so that when I run git pull on the repository, the skills are automatically updated.
 Merge `settings/claude.json` into `~/.claude/settings.json`, keeping the settings already there.
 ```
+
+## Inspired by
+
+* [tstack](https://github.com/t3dotgg/tstack)
