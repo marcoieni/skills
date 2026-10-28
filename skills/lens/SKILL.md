@@ -1,7 +1,6 @@
 ---
 name: lens
-description: Review code
-disable-model-invocation: true
+description: Use when the user says "lens".
 ---
 
 Spawn one or more subagents to review the current branch and the associated PR. Identify:
