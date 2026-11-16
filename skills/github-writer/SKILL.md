@@ -15,7 +15,8 @@ disable-model-invocation: false
        If CodeRabbit doesn't work (eg it is rate-limited), ignore it.
     5. Address all reviews/finding (by humans or bots) that you think are necessary.
        Verify every finding against the latest version of the source.
-       If you agree, push a commit, if you disagree, reply explaining why.
+       If you agree, push a commit. If you disagree with a bot, reply explaining why.
+       If you disagree with a human, suggest me a reply to post (do not reply yourself).
 * When opening a PR, open it in draft. Never mark a PR as ready for review.
 * When you are explaining how you validated your work, don't mention verification steps verified by CI.
 * Before writing anything (PR title, PR description, comments, etc), check for secrets and private details.
