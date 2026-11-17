@@ -20,6 +20,7 @@ disable-model-invocation: false
 * When opening a PR, open it in draft. Never mark a PR as ready for review.
 * When you are explaining how you validated your work, don't mention verification steps verified by CI.
 * Before writing anything (PR title, PR description, comments, etc), check for secrets and private details.
+* When writing a commit hash or a PR number, make the link clickable where it makes sense.
 
 ## Watching PRs on T3 code: `watch_pull_request`
 
