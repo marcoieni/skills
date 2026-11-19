@@ -9,3 +9,10 @@ Use `akatsuki` to review the current branch and the associated PR. Identify:
 
 If an issue is pre-existing (i.e. it wasn't introduced in this PR), report it under the section "🐍 Pre-existing issues".
 If the PR is in a GitHub stack, don't report issues that will be fixed in subsequent PRs.
+
+In the summary to report to the user provide the following sections when necessary:
+- 🔴 Blocking
+- 🟡 Should fix
+- 🔵 Nits and simplifications
+- 🐍 Pre-existing issues
+- any other section you like
