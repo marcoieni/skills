@@ -11,6 +11,7 @@ If an issue is pre-existing (i.e. it wasn't introduced in this PR), report it un
 If the PR is in a GitHub stack, don't report issues that will be fixed in subsequent PRs.
 
 In the summary to report to the user provide the following sections when necessary:
+- ✅ Correct
 - 🔴 Blocking
 - 🟡 Should fix
 - 🔵 Nits and simplifications
