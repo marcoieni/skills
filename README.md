@@ -13,6 +13,21 @@ Directories:
 * `draft-skills/`: Draft skills I am working on (Don't install).
   I might never use them. They might be there just as ideas for the future.
 * `settings/claude.json`: Claude Code settings I use.
+* `install.sh`: Installs the skills and the settings.
+
+## Install
+
+```sh
+git clone https://github.com/marcoieni/skills ~/.local/share/marcoieni/skills
+~/.local/share/marcoieni/skills/install.sh
+```
+
+`install.sh` does the whole installation, so don't link the skills by hand:
+
+* It symlinks every skill under `skills/` into `~/.codex/skills` and `~/.claude/skills`,
+  so `git pull` updates them. Run it again after `git pull` to add new skills and remove deleted ones.
+* It merges `settings/claude.json` into `~/.claude/settings.json`.
+  Keys from `settings/claude.json` win; every other setting is kept.
 
 ## 📚 Docs
 
@@ -22,9 +37,8 @@ Directories:
 ## Prompt to install
 
 ```
-Clone https://github.com/marcoieni/skills if absent and install the skills under `skills` for both codex and claude, globally.
-Use symlinks so that when I run git pull on the repository, the skills are automatically updated.
-Merge `settings/claude.json` into `~/.claude/settings.json`, keeping the settings already there.
+Clone https://github.com/marcoieni/skills into ~/.local/share/marcoieni/skills if absent, otherwise pull it.
+Then run its install.sh and show me its output.
 ```
 
 ## Inspired by
